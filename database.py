@@ -91,16 +91,6 @@ class Database:
                     created_at TEXT NOT NULL,
                     FOREIGN KEY(user_id) REFERENCES users(id)
                 );
-
-                CREATE TABLE IF NOT EXISTS freekassa_orders (
-                    order_id TEXT PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    months INTEGER NOT NULL,
-                    amount_rub REAL NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'pending',
-                    created_at TEXT NOT NULL,
-                    FOREIGN KEY(user_id) REFERENCES users(id)
-                );
                 """
             )
             # Lightweight migration for existing databases.
@@ -142,21 +132,6 @@ class Database:
                     )
                     """
                 )
-            if "freekassa_orders" not in tables:
-                conn.execute(
-                    """
-                    CREATE TABLE freekassa_orders (
-                        order_id TEXT PRIMARY KEY,
-                        user_id INTEGER NOT NULL,
-                        months INTEGER NOT NULL,
-                        amount_rub REAL NOT NULL,
-                        status TEXT NOT NULL DEFAULT 'pending',
-                        created_at TEXT NOT NULL,
-                        FOREIGN KEY(user_id) REFERENCES users(id)
-                    )
-                    """
-                )
-
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS promo_codes (
@@ -192,7 +167,7 @@ class Database:
                     "SELECT name FROM sqlite_master WHERE type='table'"
                 ).fetchall()
             }
-            for tbl in ("freekassa_orders", "crypto_invoices"):
+            for tbl in ("crypto_invoices",):
                 if tbl not in tnames:
                     continue
                 cols = {
@@ -979,7 +954,6 @@ class Database:
             return
         uid = user.id
         with self._connect() as conn:
-            conn.execute("DELETE FROM freekassa_orders WHERE user_id = ?", (uid,))
             conn.execute("DELETE FROM crypto_invoices WHERE user_id = ?", (uid,))
             conn.execute("DELETE FROM subscriptions WHERE user_id = ?", (uid,))
             conn.execute("DELETE FROM invites WHERE owner_user_id = ?", (uid,))

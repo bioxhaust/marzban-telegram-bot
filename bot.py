@@ -116,14 +116,12 @@ except ValueError:
     CRYPTO_POLL_INTERVAL = 15.0
 CRYPTO_POLL_INTERVAL = max(5.0, min(120.0, CRYPTO_POLL_INTERVAL))
 
-# Валюта отображения тарифа и база ₽/мес (имя FREEKASSA_* историческое; касса не используется).
-FREEKASSA_CURRENCY = (
-    os.getenv("FREEKASSA_CURRENCY", "RUB").strip().upper() or "RUB"
+# Валюта отображения тарифа в UI и базовая цена ₽/мес (для Stars / реф. баланса / подписей в боте).
+TARIFF_DISPLAY_CURRENCY = (
+    os.getenv("TARIFF_CURRENCY", "RUB").strip().upper() or "RUB"
 )
-FREEKASSA_PRICE_PER_MONTH_RUB = _env_float("FREEKASSA_PRICE_PER_MONTH_RUB", 200.0)
+TARIFF_PRICE_PER_MONTH_RUB = _env_float("TARIFF_PRICE_PER_MONTH_RUB", 200.0)
 _pp_raw = os.getenv("PAYMENT_PROVIDER", "auto").strip().lower()
-if _pp_raw == "freekassa":
-    _pp_raw = "auto"
 PAYMENT_PROVIDER = _pp_raw if _pp_raw in ("auto", "crypto") else "auto"
 TELEGRAM_STARS_ENABLED = os.getenv("TELEGRAM_STARS_ENABLED", "").strip().lower() in (
     "1",
@@ -134,10 +132,10 @@ TELEGRAM_STARS_ENABLED = os.getenv("TELEGRAM_STARS_ENABLED", "").strip().lower()
 STARS_RUB_PARITY = max(0.01, _env_float("STARS_RUB_PARITY", 2.5))
 
 
-def _freekassa_rub_amount(months: int) -> float:
+def _tariff_rub_amount(months: int) -> float:
     if months <= 0:
         months = 1
-    base = FREEKASSA_PRICE_PER_MONTH_RUB * months
+    base = TARIFF_PRICE_PER_MONTH_RUB * months
     disc = _CRYPTO_PACK_DISCOUNT.get(months, 0.0)
     return float(f"{round(base * (1.0 - disc), 2):.2f}")
 
@@ -152,7 +150,7 @@ def _months_word_ru(n: int) -> str:
 
 
 def _money_display_suffix() -> str:
-    return "₽" if FREEKASSA_CURRENCY.upper() == "RUB" else FREEKASSA_CURRENCY
+    return "₽" if TARIFF_DISPLAY_CURRENCY.upper() == "RUB" else TARIFF_DISPLAY_CURRENCY
 
 
 def _fmt_tariff_amount(amount: float) -> str:
@@ -166,10 +164,10 @@ def _pack_savings_percent(months: int) -> Optional[int]:
     """Скидка пакета от цены «N × месяц» без пакетной скидки (до промокода)."""
     if months <= 1:
         return None
-    rack = FREEKASSA_PRICE_PER_MONTH_RUB * months
+    rack = TARIFF_PRICE_PER_MONTH_RUB * months
     if rack <= 0:
         return None
-    actual = _freekassa_rub_amount(months)
+    actual = _tariff_rub_amount(months)
     pct = int(round(100.0 * (1.0 - float(actual) / float(rack))))
     return max(0, pct) if pct > 0 else None
 
@@ -585,7 +583,7 @@ def _apply_promo_discount_amount(base: float, discount_percent: float) -> float:
 def _checkout_rub_crypto_promo(
     user_internal_id: int, months: int
 ) -> tuple[float, str, Optional[int]]:
-    rub_base = _freekassa_rub_amount(months)
+    rub_base = _tariff_rub_amount(months)
     crypto_base = float(_crypto_amount_for_months(months))
     pr = db.resolve_promo_for_checkout(user_internal_id)
     if pr is None:
