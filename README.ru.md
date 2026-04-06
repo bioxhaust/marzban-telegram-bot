@@ -61,4 +61,4 @@ python bot.py
 
 ## Лицензия
 
-MIT, текст в `LICENSE`. Если форкаешь — поменяй copyright на себя.
+MIT, текст в `LICENSE` (copyright **bioxhaust**). Свой форк — поменяй строку copyright под себя.

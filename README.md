@@ -61,4 +61,4 @@ Keep `.env`, SQLite files, and anything identifying prod hosts **out of git**—
 
 ## License
 
-MIT — see `LICENSE`. If you fork, put your own name on the copyright line.
+MIT — see `LICENSE` (copyright **bioxhaust**). Forks: update the copyright line if you ship your own fork as yours.
