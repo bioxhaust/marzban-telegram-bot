@@ -1,29 +1,29 @@
-# Telegram VPN subscription bot + Marzban
+# Telegram subscription bot + Marzban
 
 **[Русская версия](README.ru.md)**
 
-A Telegram bot built with **python-telegram-bot**: invite-only access, payments (**Crypto Pay**, **Telegram Stars**), a simple referral program, and subscription provisioning via the **[Marzban](https://github.com/Gozargah/Marzban)** API.
+I wrote this bot for **python-telegram-bot** to sit in front of **[Marzban](https://github.com/Gozargah/Marzban)**: people join on **invites**, pay with **Crypto Pay** or **Telegram Stars**, and the bot creates/renews the user in Marzban and sends back the **subscription link**. There’s also a small **referral** layer (balance + invite slots).
 
-Intended as a learning / portfolio project. Before publishing a fork, update `LICENSE` and double-check that no production secrets are committed.
+I’m sharing the code as-is in case the same stack is useful to someone else. UI strings in the bot are mostly Russian.
 
-## Features
+## What it does
 
-- **Invite-only** “allowlist” (admin **root** invites and per-user **+1** invites after purchase).
-- **Marzban**: create/extend user, return subscription URL.
-- **Payments**: Crypto Pay (XTR/fiat depending on config), Stars, pay from **referral balance**; if no payment backend is configured, a **test grant** path exists (see `PAYMENT_PROVIDER`).
-- **Referrals**: commission from invitee payments to inviter balance (`REFERRAL_COMMISSION_PCT`), invite slots per paid month (`INVITES_PER_SUB_MONTH`).
-- **Admin**: stats dashboard, broadcast, promo codes, VIP invites, optional chat cleanup.
-- UI buttons: **referral explainer** and **support** (after allowlist entry; support username via `SUPPORT_TELEGRAM_USERNAME`).
+- **Invite-only** access: admin **root** codes and per-user **+1** codes after someone has bought in.
+- **Marzban API**: upsert user, extend access, surface subscription URL.
+- **Payments**: Crypto Pay (configurable), Stars, optional pay-from-**referral balance**; if you don’t wire a provider, there’s still a **test grant** path (`PAYMENT_PROVIDER`).
+- **Referrals**: cut of invitee checkout to inviter (`REFERRAL_COMMISSION_PCT`), invite budget per paid month (`INVITES_PER_SUB_MONTH`).
+- **Admin**: rough stats, broadcast, promo codes, VIP invites, optional chat cleanup.
+- In-bot buttons for **how referrals work** and **support** (after you’re on the list); support username from `SUPPORT_TELEGRAM_USERNAME`.
 
-**Legacy FreeKassa** files (`freekassa.py`, `freekassa_webhook.py`, related systemd unit under `deploy/`) are kept for reference; the main bot flow does not depend on them.
+`freekassa.py`, `freekassa_webhook.py`, and the old systemd snippet under `deploy/` are **legacy** from an earlier stack—I left them in the tree but the live flow doesn’t need them.
 
-## Requirements
+## What you need
 
-- Python **3.9+** (with dependencies from `requirements.txt`).
-- A running **Marzban** panel with HTTP API access and admin credentials.
-- Bot token from **@BotFather**, numeric Telegram user id for `ADMIN_TELEGRAM_ID`.
+- **Python 3.9+** and `requirements.txt`.
+- A **Marzban** instance you can hit over HTTP with admin API creds.
+- A bot token from **@BotFather** and your numeric Telegram id for `ADMIN_TELEGRAM_ID`.
 
-## Quick start
+## Run it locally
 
 ```bash
 cd vpnbot-github
@@ -33,62 +33,32 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `.env` (minimum: `BOT_TOKEN`, `ADMIN_TELEGRAM_ID`, `MARZBAN_*`).
+Fill `.env` at least: `BOT_TOKEN`, `ADMIN_TELEGRAM_ID`, `MARZBAN_*`.
 
 ```bash
 python bot.py
 ```
 
-## Useful commands
+## Commands I actually use
 
 | Command | Who |
 |--------|-----|
-| `/start` | Everyone |
+| `/start` | Anyone |
 | `/admin_create_root_invite` [uses] [days] | Admin |
 | `/admin_stats`, `/admin_wipe` | Admin |
 | `/buy`, `/buy_test` | After invite |
 
-For flow details, see `bot.py` and in-bot messages.
+The rest of the flow is in the inline keyboard and `bot.py`.
 
-## systemd & backups
+## systemd / backups
 
-Under `deploy/`:
+`deploy/vpnbot.service` is the unit I adapted for my server—fix paths, user, venv.  
+`backup-vpnbot.sh` + timer files are optional; read the script and `vpnbot-backup.default` before enabling.
 
-- `vpnbot.service` — example unit (adjust `WorkingDirectory`, `User`, venv path).
-- `backup-vpnbot.sh`, `vpnbot-backup.service`, `vpnbot-backup.timer` — optional SQLite/artifact backup (read the script and `vpnbot-backup.default`).
+## Ops note
 
-## Security
-
-- **Do not commit** `.env`, `*.db` dumps, chat exports, or production IPs.
-- Rotate `BOT_TOKEN`, Marzban passwords, Crypto Pay tokens, and panel keys after any leak.
-- Ensure your use case complies with applicable law and platform policies.
-
-## Publishing to GitHub
-
-Create an **empty** repository on GitHub first.
-
-If this folder **already has** `.git` and a first commit:
-
-```bash
-cd vpnbot-github
-git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
-git push -u origin main
-```
-
-If you are starting **from scratch**:
-
-```bash
-cd vpnbot-github
-git init
-git add .
-git commit -m "Initial commit: Telegram Marzban subscription bot"
-git branch -M main
-git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
-git push -u origin main
-```
-
-`.env` and `*.db` are listed in `.gitignore`.
+Keep `.env`, SQLite files, and anything identifying prod hosts **out of git**—`.gitignore` already drops the obvious stuff. If something leaks, rotate bot token, Marzban password, Crypto Pay app token, etc. You’re responsible for how you run this and what laws apply where you deploy.
 
 ## License
 
-MIT — see `LICENSE`. Put your name in the copyright line.
+MIT — see `LICENSE`. If you fork, put your own name on the copyright line.

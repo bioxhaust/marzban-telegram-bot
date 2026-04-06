@@ -1,29 +1,29 @@
-# Telegram VPN subscription bot + Marzban
+# Telegram-бот подписки + Marzban
 
 **[English version](README.md)**
 
-Telegram-бот на **python-telegram-bot**: инвайты, оплата (**Crypto Pay**, **Telegram Stars**), реферальная программа, выдача доступа через **[Marzban](https://github.com/Gozargah/Marzban)** API.
+Это бот на **python-telegram-bot**, который я написал под **[Marzban](https://github.com/Gozargah/Marzban)**: люди заходят по **инвайтам**, платят через **Crypto Pay** или **Telegram Stars**, бот создаёт/продлевает юзера в Marzban и отдаёт **ссылку подписки**. Плюс простая **рефералка** (баланс и слоты на инвайты).
 
-Собрано как учебный/портфолио-проект. Перед публикацией форка замените данные в `LICENSE` и убедитесь, что в коде нет ваших прод-секретов.
+Код выложил как есть — мало ли кому пригодится такой же стек. Тексты в боте в основном на русском.
 
-## Возможности
+## Что умеет
 
-- Вход в «список» только по **инвайт-коду** (root-коды от админа и пользовательские «Пустить +1»).
-- **Marzban**: создание/продление пользователя, ссылка подписки в ответе.
-- **Оплата**: Crypto Pay (XTR/фиат по настройке), Stars, списание с **реф. баланса**; без настроенной кассы — тестовая выдача (см. `PAYMENT_PROVIDER`).
-- **Рефералка**: процент с оплаты приглашённого на баланс пригласившего (`REFERRAL_COMMISSION_PCT`), инвайт-слоты за месяцы подписки (`INVITES_PER_SUB_MONTH`).
-- Админ: сводка, рассылка, промокоды, VIP-инвайты, мягкое удаление истории чата.
-- Кнопки **«Как работает рефералка»** и **«Поддержка»** (после входа в список; поддержка — `SUPPORT_TELEGRAM_USERNAME`).
+- Доступ **только по инвайту**: **root**-коды от админа и **«Пустить +1»** после своей оплаты.
+- **Marzban по API**: завести/продлить пользователя, отдать URL подписки.
+- **Оплата**: Crypto Pay (как настроишь), Stars, опционально списание с **реф. баланса**; если кассу не подключать, остаётся **тестовая выдача** (`PAYMENT_PROVIDER`).
+- **Рефералка**: доля с оплаты приглашённого пригласившему (`REFERRAL_COMMISSION_PCT`), инвайты за месяцы тарифа (`INVITES_PER_SUB_MONTH`).
+- **Админка**: сводка, рассылка, промокоды, VIP-инвайты, подчистка истории в чате.
+- Кнопки **«Как работает рефералка»** и **поддержка** (после входа в список); логин поддержки в `.env`: `SUPPORT_TELEGRAM_USERNAME`.
 
-В репозитории остаются **legacy**-файлы **FreeKassa** (`freekassa.py`, `freekassa_webhook.py`, unit в `deploy/`) для справки; основной сценарий бота на них не опирается.
+`freekassa.py`, `freekassa_webhook.py` и старый unit в `deploy/` — **хвост** от другой схемы, в рабочем сценарии бота не участвуют, просто не выкидывал из репозитория.
 
-## Требования
+## Что нужно
 
-- Python **3.9+** (проверено с зависимостями из `requirements.txt`).
-- Развёрнутая панель **Marzban** с доступным HTTP API и учёткой админа.
-- Токен бота от **@BotFather**, ваш числовой **Telegram user id** для `ADMIN_TELEGRAM_ID`.
+- **Python 3.9+** и зависимости из `requirements.txt`.
+- Поднятый **Marzban** с доступным HTTP API и админскими кредами.
+- Токен бота от **@BotFather** и твой числовой Telegram id в `ADMIN_TELEGRAM_ID`.
 
-## Быстрый старт
+## Запуск у себя
 
 ```bash
 cd vpnbot-github
@@ -33,13 +33,13 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Заполните `.env` (минимум: `BOT_TOKEN`, `ADMIN_TELEGRAM_ID`, `MARZBAN_*`).
+Минимум в `.env`: `BOT_TOKEN`, `ADMIN_TELEGRAM_ID`, `MARZBAN_*`.
 
 ```bash
 python bot.py
 ```
 
-## Полезные команды
+## Команды, которыми сам пользуюсь
 
 | Команда | Кто |
 |--------|-----|
@@ -48,47 +48,17 @@ python bot.py
 | `/admin_stats`, `/admin_wipe` | Админ |
 | `/buy`, `/buy_test` | После инвайта |
 
-Подробнее о flow см. комментарии в `bot.py` и сообщения в UI.
+Остальное — через кнопки и логику в `bot.py`.
 
 ## systemd и бэкапы
 
-В `deploy/`:
+`deploy/vpnbot.service` — то, что я подкрутил под свой сервер: пути, пользователь, venv поправь под себя.  
+Скрипт `backup-vpnbot.sh` и timer-файлы — по желанию, сначала прочитай скрипт и `vpnbot-backup.default`.
 
-- `vpnbot.service` — пример юнита для бота (поправьте `WorkingDirectory`, `User`, путь к venv).
-- `backup-vpnbot.sh`, `vpnbot-backup.service`, `vpnbot-backup.timer` — опциональный бэкап SQLite и артефактов (читайте скрипт и `vpnbot-backup.default`).
+## По-бытовому про безопасность
 
-## Безопасность
-
-- **Не коммитьте** `.env`, базы `*.db`, экспорты чатов и прод-IP в публичный репозиторий.
-- После любых утечек — **ротация** `BOT_TOKEN`, паролей Marzban, Crypto Pay API, ключей панели.
-- Убедитесь, что политика вашего сервиса и юрисдикции допускает способ оказания услуг, который вы автоматизируете.
-
-## Публикация на GitHub
-
-Сначала создай **пустой** репозиторий на GitHub.
-
-Если в папке **уже есть** `.git` и первый коммит:
-
-```bash
-cd vpnbot-github
-git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
-git push -u origin main
-```
-
-Если начинаешь **с нуля**:
-
-```bash
-cd vpnbot-github
-git init
-git add .
-git commit -m "Initial commit: Telegram Marzban subscription bot"
-git branch -M main
-git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
-git push -u origin main
-```
-
-Не пушь `.env` и `*.db` — они в `.gitignore`.
+`.env`, базы и прод-хосты в git не совать — в `.gitignore` уже отсекается очевидное. Если что-то утекло — меняй токен бота, пароль Marzban, токен Crypto Pay и т.д. Как ты это используешь и что у тебя по закону — твоя зона ответственности.
 
 ## Лицензия
 
-MIT — см. `LICENSE`. Укажите своё имя в строке copyright.
+MIT, текст в `LICENSE`. Если форкаешь — поменяй copyright на себя.
