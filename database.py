@@ -602,26 +602,6 @@ class Database:
         with self._connect() as conn:
             conn.execute("DELETE FROM crypto_invoices WHERE user_id = ?", (user_id,))
 
-    def add_pending_freekassa_order(
-        self,
-        order_id: str,
-        user_id: int,
-        months: int,
-        amount_rub: float,
-        promo_code_id: Optional[int] = None,
-    ) -> None:
-        with self._connect() as conn:
-            conn.execute(
-                """
-                INSERT INTO freekassa_orders (
-                    order_id, user_id, months, amount_rub, status, created_at,
-                    promo_code_id
-                )
-                VALUES (?, ?, ?, ?, 'pending', ?, ?)
-                """,
-                (order_id, user_id, months, amount_rub, self._now_iso(), promo_code_id),
-            )
-
     @staticmethod
     def normalize_promo_code(raw: str) -> str:
         return (raw or "").strip().upper()
@@ -841,34 +821,6 @@ class Database:
             )
             conn.execute("DELETE FROM promo_codes WHERE id = ?", (promo_id,))
 
-    def try_complete_freekassa_order(
-        self, order_id: str, paid_amount: float
-    ) -> Optional[sqlite3.Row]:
-        tol = 0.02
-        with self._connect() as conn:
-            row = conn.execute(
-                """
-                SELECT * FROM freekassa_orders
-                WHERE order_id = ? AND status = 'pending'
-                """,
-                (order_id,),
-            ).fetchone()
-            if not row:
-                return None
-            if abs(float(row["amount_rub"]) - float(paid_amount)) > tol:
-                return None
-            cur = conn.execute(
-                """
-                UPDATE freekassa_orders
-                SET status = 'completed'
-                WHERE order_id = ? AND status = 'pending'
-                """,
-                (order_id,),
-            )
-            if cur.rowcount == 0:
-                return None
-        return row
-
     def admin_dashboard_stats(self) -> dict[str, object]:
         """Сводные метрики для админки (одним запросом к БД по секциям)."""
         now = datetime.now(timezone.utc)
@@ -907,40 +859,6 @@ class Database:
             subs_inactive_flag = int(
                 conn.execute(
                     "SELECT COUNT(*) AS c FROM subscriptions WHERE is_active = 0"
-                ).fetchone()["c"]
-            )
-
-            row = conn.execute(
-                """
-                SELECT COUNT(*) AS c, COALESCE(SUM(amount_rub), 0) AS s
-                FROM freekassa_orders WHERE status = 'completed'
-                """
-            ).fetchone()
-            fk_done_n, fk_done_sum = int(row["c"]), float(row["s"] or 0)
-
-            row = conn.execute(
-                """
-                SELECT COUNT(*) AS c, COALESCE(SUM(amount_rub), 0) AS s
-                FROM freekassa_orders
-                WHERE status = 'completed' AND created_at >= ?
-                """,
-                (week_ago,),
-            ).fetchone()
-            fk_7d_n, fk_7d_sum = int(row["c"]), float(row["s"] or 0)
-
-            row = conn.execute(
-                """
-                SELECT COUNT(*) AS c, COALESCE(SUM(amount_rub), 0) AS s
-                FROM freekassa_orders
-                WHERE status = 'completed' AND created_at >= ?
-                """,
-                (month_ago,),
-            ).fetchone()
-            fk_30d_n, fk_30d_sum = int(row["c"]), float(row["s"] or 0)
-
-            fk_pending = int(
-                conn.execute(
-                    "SELECT COUNT(*) AS c FROM freekassa_orders WHERE status = 'pending'"
                 ).fetchone()["c"]
             )
 
@@ -1040,13 +958,6 @@ class Database:
             "subs_active_valid": subs_active_valid,
             "subs_expired_but_active_flag": subs_expired_but_active_flag,
             "subs_inactive_flag": subs_inactive_flag,
-            "fk_done_n": fk_done_n,
-            "fk_done_sum": fk_done_sum,
-            "fk_7d_n": fk_7d_n,
-            "fk_7d_sum": fk_7d_sum,
-            "fk_30d_n": fk_30d_n,
-            "fk_30d_sum": fk_30d_sum,
-            "fk_pending": fk_pending,
             "cr_done_n": cr_done_n,
             "cr_months_total": cr_months_total,
             "cr_7d_n": cr_7d_n,

@@ -537,11 +537,6 @@ def _format_admin_stats_text(stats: dict[str, object]) -> str:
         for st, cnt in sorted(users_by_status.items(), key=lambda x: x[0])
     ) or "  • (нет данных)"
 
-    fk_cur = FREEKASSA_CURRENCY
-    fk_done_sum = float(stats.get("fk_done_sum") or 0)
-    fk_7d_sum = float(stats.get("fk_7d_sum") or 0)
-    fk_30d_sum = float(stats.get("fk_30d_sum") or 0)
-
     blocks = [
         "📊 Сводка",
         f"Пользователей в базе: {stats.get('users_total', 0)}",
@@ -552,12 +547,6 @@ def _format_admin_stats_text(stats: dict[str, object]) -> str:
         f"  • сейчас действуют (срок в будущем): {stats.get('subs_active_valid', 0)}",
         f"  • просрочены, флаг ещё active=1: {stats.get('subs_expired_but_active_flag', 0)}",
         f"  • active=0: {stats.get('subs_inactive_flag', 0)}",
-        "",
-        f"FreeKassa (завершённые, {fk_cur}):",
-        f"  • всего оплат: {stats.get('fk_done_n', 0)} на {fk_done_sum:.2f}",
-        f"  • за 7 дней: {stats.get('fk_7d_n', 0)} на {fk_7d_sum:.2f}",
-        f"  • за 30 дней: {stats.get('fk_30d_n', 0)} на {fk_30d_sum:.2f}",
-        f"  • ожидают оплаты (pending): {stats.get('fk_pending', 0)}",
         "",
         "Crypto Bot:",
         f"  • завершённых оплат: {stats.get('cr_done_n', 0)} "

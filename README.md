@@ -15,8 +15,6 @@ I’m sharing the code as-is in case the same stack is useful to someone else. U
 - **Admin**: rough stats, broadcast, promo codes, VIP invites, optional chat cleanup.
 - In-bot buttons for **how referrals work** and **support** (after you’re on the list); support username from `SUPPORT_TELEGRAM_USERNAME`.
 
-`freekassa.py`, `freekassa_webhook.py`, and the old systemd snippet under `deploy/` are **legacy** from an earlier stack—I left them in the tree but the live flow doesn’t need them.
-
 ## What you need
 
 - **Python 3.9+** and `requirements.txt`.
