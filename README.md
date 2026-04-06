@@ -1,27 +1,29 @@
 # Telegram VPN subscription bot + Marzban
 
-Telegram-бот на **python-telegram-bot**: инвайты, оплата (**Crypto Pay**, **Telegram Stars**), реферальная программа, выдача доступа через **[Marzban](https://github.com/Gozargah/Marzban)** API.
+**[Русская версия](README.ru.md)**
 
-Собрано как учебный/портфолио-проект. Перед публикацией форка замените данные в `LICENSE` и убедитесь, что в коде нет ваших прод-секретов.
+A Telegram bot built with **python-telegram-bot**: invite-only access, payments (**Crypto Pay**, **Telegram Stars**), a simple referral program, and subscription provisioning via the **[Marzban](https://github.com/Gozargah/Marzban)** API.
 
-## Возможности
+Intended as a learning / portfolio project. Before publishing a fork, update `LICENSE` and double-check that no production secrets are committed.
 
-- Вход в «список» только по **инвайт-коду** (root-коды от админа и пользовательские «Пустить +1»).
-- **Marzban**: создание/продление пользователя, ссылка подписки в ответе.
-- **Оплата**: Crypto Pay (XTR/фиат по настройке), Stars, списание с **реф. баланса**; без настроенной кассы — тестовая выдача (см. `PAYMENT_PROVIDER`).
-- **Рефералка**: процент с оплаты приглашённого на баланс пригласившего (`REFERRAL_COMMISSION_PCT`), инвайт-слоты за месяцы подписки (`INVITES_PER_SUB_MONTH`).
-- Админ: сводка, рассылка, промокоды, VIP-инвайты, мягкое удаление истории чата.
-- Кнопки **«Как работает рефералка»** и **«Поддержка»** (после входа в список; поддержка — `SUPPORT_TELEGRAM_USERNAME`).
+## Features
 
-В репозитории остаются **legacy**-файлы **FreeKassa** (`freekassa.py`, `freekassa_webhook.py`, unit в `deploy/`) для справки; основной сценарий бота на них не опирается.
+- **Invite-only** “allowlist” (admin **root** invites and per-user **+1** invites after purchase).
+- **Marzban**: create/extend user, return subscription URL.
+- **Payments**: Crypto Pay (XTR/fiat depending on config), Stars, pay from **referral balance**; if no payment backend is configured, a **test grant** path exists (see `PAYMENT_PROVIDER`).
+- **Referrals**: commission from invitee payments to inviter balance (`REFERRAL_COMMISSION_PCT`), invite slots per paid month (`INVITES_PER_SUB_MONTH`).
+- **Admin**: stats dashboard, broadcast, promo codes, VIP invites, optional chat cleanup.
+- UI buttons: **referral explainer** and **support** (after allowlist entry; support username via `SUPPORT_TELEGRAM_USERNAME`).
 
-## Требования
+**Legacy FreeKassa** files (`freekassa.py`, `freekassa_webhook.py`, related systemd unit under `deploy/`) are kept for reference; the main bot flow does not depend on them.
 
-- Python **3.9+** (проверено с зависимостями из `requirements.txt`).
-- Развёрнутая панель **Marzban** с доступным HTTP API и учёткой админа.
-- Токен бота от **@BotFather**, ваш числовой **Telegram user id** для `ADMIN_TELEGRAM_ID`.
+## Requirements
 
-## Быстрый старт
+- Python **3.9+** (with dependencies from `requirements.txt`).
+- A running **Marzban** panel with HTTP API access and admin credentials.
+- Bot token from **@BotFather**, numeric Telegram user id for `ADMIN_TELEGRAM_ID`.
+
+## Quick start
 
 ```bash
 cd vpnbot-github
@@ -31,37 +33,49 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Заполните `.env` (минимум: `BOT_TOKEN`, `ADMIN_TELEGRAM_ID`, `MARZBAN_*`).
+Edit `.env` (minimum: `BOT_TOKEN`, `ADMIN_TELEGRAM_ID`, `MARZBAN_*`).
 
 ```bash
 python bot.py
 ```
 
-## Полезные команды
+## Useful commands
 
-| Команда | Кто |
+| Command | Who |
 |--------|-----|
-| `/start` | Все |
-| `/admin_create_root_invite` [uses] [days] | Админ |
-| `/admin_stats`, `/admin_wipe` | Админ |
-| `/buy`, `/buy_test` | После инвайта |
+| `/start` | Everyone |
+| `/admin_create_root_invite` [uses] [days] | Admin |
+| `/admin_stats`, `/admin_wipe` | Admin |
+| `/buy`, `/buy_test` | After invite |
 
-Подробнее о flow см. комментарии в `bot.py` и сообщения в UI.
+For flow details, see `bot.py` and in-bot messages.
 
-## systemd и бэкапы
+## systemd & backups
 
-В `deploy/`:
+Under `deploy/`:
 
-- `vpnbot.service` — пример юнита для бота (поправьте `WorkingDirectory`, `User`, путь к venv).
-- `backup-vpnbot.sh`, `vpnbot-backup.service`, `vpnbot-backup.timer` — опциональный бэкап SQLite и артефактов (читайте скрипт и `vpnbot-backup.default`).
+- `vpnbot.service` — example unit (adjust `WorkingDirectory`, `User`, venv path).
+- `backup-vpnbot.sh`, `vpnbot-backup.service`, `vpnbot-backup.timer` — optional SQLite/artifact backup (read the script and `vpnbot-backup.default`).
 
-## Безопасность
+## Security
 
-- **Не коммитьте** `.env`, базы `*.db`, экспорты чатов и прод-IP в публичный репозиторий.
-- После любых утечек — **ротация** `BOT_TOKEN`, паролей Marzban, Crypto Pay API, ключей панели.
-- Убедитесь, что политика вашего сервиса и юрисдикции допускает способ оказания услуг, который вы автоматизируете.
+- **Do not commit** `.env`, `*.db` dumps, chat exports, or production IPs.
+- Rotate `BOT_TOKEN`, Marzban passwords, Crypto Pay tokens, and panel keys after any leak.
+- Ensure your use case complies with applicable law and platform policies.
 
-## Публикация на GitHub
+## Publishing to GitHub
+
+Create an **empty** repository on GitHub first.
+
+If this folder **already has** `.git` and a first commit:
+
+```bash
+cd vpnbot-github
+git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
+git push -u origin main
+```
+
+If you are starting **from scratch**:
 
 ```bash
 cd vpnbot-github
@@ -73,8 +87,8 @@ git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
 git push -u origin main
 ```
 
-Создай пустой репозиторий на GitHub заранее. Не пушь `.env` и `*.db` — они в `.gitignore`.
+`.env` and `*.db` are listed in `.gitignore`.
 
-## Лицензия
+## License
 
-MIT — см. `LICENSE`. Укажите своё имя в строке copyright.
+MIT — see `LICENSE`. Put your name in the copyright line.
