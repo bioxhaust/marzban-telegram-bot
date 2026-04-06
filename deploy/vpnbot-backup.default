@@ -1,0 +1,8 @@
+# Скопируй на сервер: /etc/default/vpnbot-backup
+# Значения по умолчанию заданы в backup-vpnbot.sh — раскомментируй при необходимости.
+
+# VPNDIR=/opt/vpnbot
+# BACKUP_ROOT=/var/backups/vpnbot
+# RETENTION_DAYS=14
+# MARZBAN_CONTAINER=marzban-marzban-1
+# MARZBAN_DB_IN_CONTAINER=/var/lib/marzban/db.sqlite3

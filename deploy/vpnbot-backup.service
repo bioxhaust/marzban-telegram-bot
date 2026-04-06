@@ -1,0 +1,12 @@
+[Unit]
+Description=vpnbot + Marzban + nginx backup (on main panel server)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/vpnbot/deploy/backup-vpnbot.sh
+# Скрипт из репозитория; если лежит только на сервере — поправь путь в ExecStart.
+
+[Install]
+WantedBy=multi-user.target

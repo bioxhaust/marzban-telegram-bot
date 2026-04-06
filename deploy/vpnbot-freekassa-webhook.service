@@ -1,0 +1,14 @@
+[Unit]
+Description=FreeKassa webhook for vpnbot (Flask)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/vpnbot
+ExecStart=/opt/vpnbot/.venv/bin/python3 /opt/vpnbot/freekassa_webhook.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
